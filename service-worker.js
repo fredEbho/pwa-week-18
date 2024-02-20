@@ -25,8 +25,14 @@ self.addEventListener('fetch', function (e) {
         //check if the cache has the file
         caches.match(e.request).then(function (r) {
             console.log('[Service Worker] Fetching resource: '+e.request.url);
-            // 'r' is the matching file if it exists in the cache
-            return r;
+            // 'r' is the matching file if it exists in the cache or download if it is not there
+            return r || fetch(e.request).then(function (response) {
+                //add the new file to the cache
+                return caches.open(cacheName).then(function (cache) {
+                    cache.put(e.request, response.clone())
+                    return response
+                })
+            })
         })
     )
 })
